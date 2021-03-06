@@ -9,7 +9,7 @@ type PaginatorPropsType = {
     portionSize: number
 }
 
-export const Paginator = React.memo (({totalItemsCount, pageSize, currentPage, onChangePage, portionSize=10, ...props}: PaginatorPropsType) => {  
+export const Paginator = React.memo (({totalItemsCount, pageSize, currentPage, onChangePage, portionSize=5, ...props}: PaginatorPropsType) => {  
     let pageCount: number = Math.ceil(totalItemsCount / pageSize) // Math.сeil округляет число в большую сторону
     let pages: Array<number> = []
     let i: number

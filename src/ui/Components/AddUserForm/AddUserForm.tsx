@@ -2,11 +2,13 @@ import React, {ChangeEvent, KeyboardEvent, useState} from 'react'
 import { Button, Form } from 'react-bootstrap'
 import { useFormik } from 'formik'
 import { useDispatch, useSelector } from 'react-redux'
-import { addUser } from '../../../bll/UsersReducer'
+import { AppStateType } from '../../../bll/Store'
+import { addUser } from '../../../bll/Reducer'
 import { UserAdressType } from '../../../api/Api'
 
 export const AddUserForm = React.memo( () => {
     const dispatch = useDispatch()
+    const countUsers = useSelector<AppStateType, number>(state => state.app.countUsers)
 
     const formik = useFormik({
         initialValues: {
@@ -41,10 +43,8 @@ export const AddUserForm = React.memo( () => {
             }
             return errors;
         },
-        onSubmit: values => {
-            // formik.resetForm()            
-            dispatch(addUser(values))
-            // setActiveModal(false)
+        onSubmit: values => {     
+            dispatch(addUser(values, countUsers))
         },
     })
 

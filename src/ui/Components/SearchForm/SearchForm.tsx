@@ -1,11 +1,14 @@
 import React, {ChangeEvent, KeyboardEvent, useState} from 'react'
 import { Button, Form } from 'react-bootstrap'
+import { useSelector } from 'react-redux'
+import { AppStateType } from '../../../bll/Store'
 import style from './SearchForm.module.css'
 
-export const SearchForm = React.memo( (props:{searchItem: (searchName:string)=>void}) => {
+export const SearchForm = React.memo( (props:{searchItem: (searchName:string, countUsers:number)=>void}) => {
     let [searchName, setSearchName] = useState(" ")
+    const countUsers = useSelector<AppStateType, number>(state => state.app.countUsers)
 
-    const searchItemName = () => { props.searchItem(searchName); setSearchName(" ") }
+    const searchItemName = () => { props.searchItem(searchName, countUsers)}
     const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => { setSearchName(e.currentTarget.value)};
     const onKeyPressHandler = (e: KeyboardEvent<HTMLInputElement>) => {if (e.key === "Enter") { searchItemName() }
     };

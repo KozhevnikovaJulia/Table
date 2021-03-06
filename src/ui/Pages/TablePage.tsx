@@ -1,63 +1,105 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import '../../App.scss'
-import { Table } from 'react-bootstrap'
-import { UserType} from '../../api/Api'
 import { AppStateType } from '../../bll/Store'
-import { getUsers, filterUser } from '../../bll/UsersReducer'
-import { SortButtons } from '../Components/SortButtons/SortButtons'
+import { UserType } from '../../api/Api'
+import { getUsers, setSortField, setUsers, setSort, setRow, setIsModeSelected, setCurrentPage, setSearch } from '../../bll/Reducer'
 import { Modal } from '../Components/Modal/Modal'
 import { AddUserForm } from '../Components/AddUserForm/AddUserForm'
 import { SearchForm } from '../Components/SearchForm/SearchForm'
 import { Button } from 'react-bootstrap'
+import { Paginator } from '../Components/Paginator/Paginator'
+import { InteractiveTable } from '../Components/Table/InteractiveTable'
+import { Preloader } from '../Components/Preloder/Preloader'
+import { DetailRowView } from '../Components/DatailRowView/DetailRowView'
+import { ModeSelector } from '../Components/ModeSelector/ModeSelector'
+import _ from 'lodash'
 
-export const TablePage = () => {   
-  let [activeModal, setActiveModal] = useState(false)
+export const TablePage = React.memo(() => {     
+  let [activeModal, setActiveModal] = useState(false)  
 
-  const searchUserName = (searchName: string) => {
-    debugger
-    dispatch(filterUser(searchName))
+  const dispatch = useDispatch()
+  const users = useSelector<AppStateType, Array<UserType>>(state => state.app.users)
+  const isLoading = useSelector<AppStateType, boolean>(state => state.app.isLoading)
+  const pageSize = useSelector<AppStateType, number>(state => state.app.pageSize)
+  const currentPage = useSelector<AppStateType, number>(state => state.app.currentPage)
+  const sort = useSelector<AppStateType, string>(state => state.app.sort)
+  const sortField = useSelector<AppStateType, string>(state => state.app.sortField)
+  const row = useSelector<AppStateType, UserType>(state => state.app.row)
+  const isModeSelected = useSelector<AppStateType, boolean>(state => state.app.isModeSelected)
+  const search = useSelector<AppStateType, string>(state => state.app.search)
+
+  const onSort = (sortField:string) => {  
+    const cloneUsers = users.concat();
+    const sortType = sort === 'asc' ? 'desc' : 'asc';
+    const orderedUsers = _.orderBy(cloneUsers, sortField, sortType);
+    dispatch(setUsers(orderedUsers))
+    dispatch(setSortField(sortField))
+    dispatch(setSort(sortType))
   }
-    const dispatch = useDispatch()
-    const users = useSelector<AppStateType, Array<UserType>>(state => state.users.users)
-    useEffect(() => {
-      dispatch(getUsers())
-  }, [])    
+  const onRowSelect = (row: UserType) => {
+    dispatch(setRow(row))
+  }
+  const modeSelectHandler = (countUsers:number) => {
+    dispatch(setIsModeSelected(true))
+    dispatch(getUsers(countUsers))
+  }
+  const searchHandler = (search: string, countUsers:number) =>{
+    debugger
+    dispatch(setSearch(search))  
+    dispatch(setCurrentPage(1))  
+    dispatch(getUsers(countUsers))
+  }  
+  const pageChangeHandler = (page:number) => {
+    dispatch(setCurrentPage(page))
+  }
+  const getFilteredUsers = () => {
+    debugger
+    if (!search) {
+      return users
+    }
+    let result = users.filter(item => {
+      return (
+        item["firstName"].toLowerCase().includes(search.toLowerCase()) ||
+        item["lastName"].toLowerCase().includes(search.toLowerCase()) ||
+        item["email"].toLowerCase().includes(search.toLowerCase())
+      );
+    });
+    if (!result.length) {
+      result = users
+    }
+    return result
+  }
 
-     return <div className="App">
-       <div>
-       <SearchForm searchItem={searchUserName} />
-       </div>       
-       <div>
-       <Button variant="dark" onClick = {()=>{setActiveModal(true)}}>ADD USER</Button>
-       </div>
-      
+  const filteredUsers = getFilteredUsers();
+  const displayUsers = _.chunk(filteredUsers, pageSize)
+  const usersTotalCount = filteredUsers.length
 
-<Table striped bordered hover>
-  <thead>
-    <tr>
-      <th>id<SortButtons param= "id" /></th>
-      <th>First Name<SortButtons param= "firstName" /></th>
-      <th>Last Name<SortButtons param= "lastName" /></th>
-      <th>Email<SortButtons param= "email" /></th>
-      <th>Phone<SortButtons param= "phone" /></th>
-    </tr>
-  </thead>
-  <tbody>
-  {users.map((user) =>   <tr key={user.id}>
-      <td>{user.id}</td>
-      <td>{user.firstName}</td>
-      <td>{user.lastName}</td>
-      <td>{user.email}</td>
-      <td>{user.phone}</td>
-    </tr>
-   )}
-  </tbody>
-</Table>
-
-      <Modal activeModal={activeModal} setActiveModal={setActiveModal} >
-        <AddUserForm/>
-      </Modal>
-
+  if (!isModeSelected) {
+    return (
+      <div className="container">
+        <ModeSelector onSelect={modeSelectHandler} />
+      </div>
+    )
+  } 
+  return <div className="App">
+    {isLoading && <Preloader/>}
+    <div>
+      <SearchForm searchItem={searchHandler} />
     </div>
-}
+    <div>
+      <Button variant="dark" onClick={() => { setActiveModal(true) }}>ADD USER</Button>
+    </div>
+    {filteredUsers.length > pageSize &&
+    <Paginator totalItemsCount={usersTotalCount} pageSize={pageSize} currentPage={currentPage} onChangePage={pageChangeHandler} portionSize={5} /> }
+   {displayUsers.length && <InteractiveTable users={displayUsers[currentPage -1] } onSort={onSort} sort={sort} sortField={sortField} onRowSelect={onRowSelect}/>}
+
+    <Modal activeModal={activeModal} setActiveModal={setActiveModal} >
+      <AddUserForm />
+    </Modal>
+
+    { row ? <DetailRowView person={row} /> : null }
+  </div>
+})
+
+

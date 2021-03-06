@@ -1,11 +1,11 @@
 import { applyMiddleware, combineReducers, createStore, compose } from 'redux'
-import { usersReducer } from '../bll/UsersReducer'
+import { Reducer } from './Reducer'
 import thunkMiddleware from 'redux-thunk'
 
 
 let redusers = combineReducers (
     {
-        users: usersReducer        
+        app: Reducer        
     }
 )
 

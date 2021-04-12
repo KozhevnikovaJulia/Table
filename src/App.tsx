@@ -1,16 +1,14 @@
-import React from 'react'
-import './App.scss'
-import { Navbar, Nav, Form, FormControl, Button,   } from 'react-bootstrap'
-import {Route, HashRouter, Switch, Redirect, NavLink} from 'react-router-dom'
-import { TablePage } from './ui/Pages/TablePage'
-import { HomePage } from './ui/Pages/HomePage'
+import './App.scss';
+import { TablePage } from './ui/Pages/TablePage';
+import { ScrollToTop } from './ui/Components/ScrollToTop';
 
 function App() {
-  return <>
-   <TablePage />
-  </>
+  return (
+    <>
+      <TablePage />
+      <ScrollToTop />
+    </>
+  );
 }
 
-export default App
-
-
+export default App;

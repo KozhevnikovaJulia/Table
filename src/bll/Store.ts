@@ -1,14 +1,19 @@
-import { applyMiddleware, combineReducers, createStore, compose } from 'redux'
-import { Reducer } from './Reducer'
-import thunkMiddleware from 'redux-thunk'
+import { applyMiddleware, combineReducers, createStore, compose } from 'redux';
+import { Reducer } from './Reducer';
+import thunkMiddleware from 'redux-thunk';
 
+let redusers = combineReducers({
+  app: Reducer,
+});
 
-let redusers = combineReducers (
-    {
-        app: Reducer        
-    }
-)
+export type AppStateType = ReturnType<typeof redusers>;
 
-export type AppStateType = ReturnType<typeof redusers>
+declare global {
+  interface Window {
+    __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: typeof compose;
+  }
+}
 
-export let store = createStore (redusers, applyMiddleware (thunkMiddleware))
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+
+export let store = createStore(redusers, composeEnhancers(applyMiddleware(thunkMiddleware)));
